@@ -1,0 +1,412 @@
+import React, { useState, useEffect } from 'react';
+import { Play, Plus, Trash2, Route, BarChart3, AlertTriangle, CheckCircle, MapPin } from 'lucide-react';
+
+const TrafficSystemDemo = () => {
+  const [nodes, setNodes] = useState([
+    { id: 'A', x: 100, y: 100 },
+    { id: 'B', x: 300, y: 100 },
+    { id: 'C', x: 200, y: 200 },
+    { id: 'D', x: 400, y: 200 },
+    { id: 'E', x: 300, y: 300 },
+  ]);
+
+  const [edges, setEdges] = useState([
+    { from: 'A', to: 'B', weight: 5, original: 5 },
+    { from: 'A', to: 'C', weight: 3, original: 3 },
+    { from: 'B', to: 'C', weight: 2, original: 2 },
+    { from: 'B', to: 'D', weight: 6, original: 6 },
+    { from: 'C', to: 'D', weight: 4, original: 4 },
+    { from: 'D', to: 'E', weight: 2, original: 2 },
+  ]);
+
+  const [events, setEvents] = useState([]);
+  const [nextEventId, setNextEventId] = useState(1);
+  const [selectedFrom, setSelectedFrom] = useState('');
+  const [selectedTo, setSelectedTo] = useState('');
+  const [path, setPath] = useState([]);
+  const [activeTab, setActiveTab] = useState('graph');
+
+  // Algoritmo de Dijkstra simplificado
+  const dijkstra = (start, end) => {
+    const distances = {};
+    const previous = {};
+    const unvisited = new Set();
+
+    nodes.forEach(node => {
+      distances[node.id] = Infinity;
+      previous[node.id] = null;
+      unvisited.add(node.id);
+    });
+
+    distances[start] = 0;
+
+    while (unvisited.size > 0) {
+      let current = null;
+      let minDist = Infinity;
+      
+      unvisited.forEach(node => {
+        if (distances[node] < minDist) {
+          minDist = distances[node];
+          current = node;
+        }
+      });
+
+      if (current === null || current === end) break;
+      unvisited.delete(current);
+
+      edges.forEach(edge => {
+        let neighbor = null;
+        if (edge.from === current) neighbor = edge.to;
+        if (edge.to === current) neighbor = edge.from;
+
+        if (neighbor && unvisited.has(neighbor)) {
+          const alt = distances[current] + edge.weight;
+          if (alt < distances[neighbor]) {
+            distances[neighbor] = alt;
+            previous[neighbor] = current;
+          }
+        }
+      });
+    }
+
+    // Reconstruir caminho
+    const pathArray = [];
+    let current = end;
+    while (current !== null) {
+      pathArray.unshift(current);
+      current = previous[current];
+    }
+
+    return pathArray.length > 1 ? { path: pathArray, distance: distances[end] } : null;
+  };
+
+  const addEvent = (type, from, to, impact) => {
+    const newEvent = {
+      id: nextEventId,
+      type,
+      location: `${from}-${to}`,
+      impact,
+      timestamp: Date.now()
+    };
+
+    setEvents([...events, newEvent]);
+    setNextEventId(nextEventId + 1);
+
+    // Atualizar peso da aresta
+    setEdges(edges.map(edge => {
+      if ((edge.from === from && edge.to === to) || (edge.from === to && edge.to === from)) {
+        return { ...edge, weight: edge.original + impact };
+      }
+      return edge;
+    }));
+  };
+
+  const removeEvent = (eventId) => {
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+
+    const [from, to] = event.location.split('-');
+    
+    // Restaurar peso original
+    setEdges(edges.map(edge => {
+      if ((edge.from === from && edge.to === to) || (edge.from === to && edge.to === from)) {
+        return { ...edge, weight: edge.original };
+      }
+      return edge;
+    }));
+
+    setEvents(events.filter(e => e.id !== eventId));
+  };
+
+  const calculateRoute = () => {
+    if (!selectedFrom || !selectedTo) return;
+    
+    const result = dijkstra(selectedFrom, selectedTo);
+    if (result) {
+      setPath(result.path);
+    }
+  };
+
+  const getEdgeColor = (from, to) => {
+    const edge = edges.find(e => 
+      (e.from === from && e.to === to) || (e.from === to && e.to === from)
+    );
+    
+    if (path.length > 0 && path.includes(from) && path.includes(to)) {
+      const fromIdx = path.indexOf(from);
+      const toIdx = path.indexOf(to);
+      if (Math.abs(fromIdx - toIdx) === 1) return '#10b981';
+    }
+
+    if (edge && edge.weight !== edge.original) return '#ef4444';
+    return '#94a3b8';
+  };
+
+  const getEdgeWidth = (from, to) => {
+    if (path.length > 0 && path.includes(from) && path.includes(to)) {
+      const fromIdx = path.indexOf(from);
+      const toIdx = path.indexOf(to);
+      if (Math.abs(fromIdx - toIdx) === 1) return 3;
+    }
+    return 2;
+  };
+
+  return (
+    <div className="w-full h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+            <MapPin className="text-blue-400" />
+            Sistema de Trânsito Inteligente
+          </h1>
+          <p className="text-slate-400">Integração Grafo Ponderado + Árvore AVL</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setActiveTab('graph')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'graph' ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
+            }`}
+          >
+            <Route className="inline mr-2" size={18} />
+            Malha Viária
+          </button>
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'events' ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
+            }`}
+          >
+            <AlertTriangle className="inline mr-2" size={18} />
+            Eventos ({events.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('routes')}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeTab === 'routes' ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'
+            }`}
+          >
+            <BarChart3 className="inline mr-2" size={18} />
+            Calcular Rota
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Visualização do Grafo */}
+          <div className="lg:col-span-2 bg-slate-800 rounded-lg p-4 border border-slate-700">
+            <h2 className="text-xl font-semibold mb-4">Visualização da Malha</h2>
+            <svg width="500" height="400" className="bg-slate-900 rounded">
+              {/* Arestas */}
+              {edges.map((edge, idx) => {
+                const fromNode = nodes.find(n => n.id === edge.from);
+                const toNode = nodes.find(n => n.id === edge.to);
+                if (!fromNode || !toNode) return null;
+
+                const midX = (fromNode.x + toNode.x) / 2;
+                const midY = (fromNode.y + toNode.y) / 2;
+
+                return (
+                  <g key={idx}>
+                    <line
+                      x1={fromNode.x}
+                      y1={fromNode.y}
+                      x2={toNode.x}
+                      y2={toNode.y}
+                      stroke={getEdgeColor(edge.from, edge.to)}
+                      strokeWidth={getEdgeWidth(edge.from, edge.to)}
+                    />
+                    <text
+                      x={midX}
+                      y={midY - 5}
+                      fill="white"
+                      fontSize="12"
+                      textAnchor="middle"
+                      className="font-mono"
+                    >
+                      {edge.weight.toFixed(1)}km
+                    </text>
+                    {edge.weight !== edge.original && (
+                      <text
+                        x={midX}
+                        y={midY + 10}
+                        fill="#ef4444"
+                        fontSize="10"
+                        textAnchor="middle"
+                      >
+                        (+{(edge.weight - edge.original).toFixed(1)})
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+
+              {/* Nós */}
+              {nodes.map(node => (
+                <g key={node.id}>
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={20}
+                    fill={path.includes(node.id) ? '#10b981' : '#3b82f6'}
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={node.x}
+                    y={node.y + 5}
+                    fill="white"
+                    fontSize="16"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                  >
+                    {node.id}
+                  </text>
+                </g>
+              ))}
+            </svg>
+
+            {path.length > 0 && (
+              <div className="mt-4 p-3 bg-green-900/30 border border-green-700 rounded">
+                <p className="font-semibold text-green-400">
+                  Rota Encontrada: {path.join(' → ')}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Painel Lateral */}
+          <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+            {activeTab === 'events' && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Gerenciar Eventos</h3>
+                
+                <div className="mb-4 space-y-2">
+                  <select 
+                    className="w-full p-2 bg-slate-700 rounded"
+                    onChange={(e) => {
+                      const [from, to] = e.target.value.split('-');
+                      if (from && to) {
+                        addEvent('acidente', from, to, 3);
+                      }
+                    }}
+                    value=""
+                  >
+                    <option value="">+ Adicionar Acidente</option>
+                    {edges.map((edge, idx) => (
+                      <option key={idx} value={`${edge.from}-${edge.to}`}>
+                        {edge.from} ↔ {edge.to}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  {events.length === 0 ? (
+                    <p className="text-slate-400 text-sm">Nenhum evento ativo</p>
+                  ) : (
+                    events.map(event => (
+                      <div key={event.id} className="bg-slate-700 p-3 rounded flex justify-between items-start">
+                        <div className="flex-1">
+                          <p className="font-semibold text-red-400">{event.type}</p>
+                          <p className="text-sm text-slate-300">Via: {event.location}</p>
+                          <p className="text-xs text-slate-400">Impacto: +{event.impact}km</p>
+                        </div>
+                        <button
+                          onClick={() => removeEvent(event.id)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'routes' && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Calcular Rota</h3>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm mb-1">Origem</label>
+                    <select 
+                      className="w-full p-2 bg-slate-700 rounded"
+                      value={selectedFrom}
+                      onChange={(e) => setSelectedFrom(e.target.value)}
+                    >
+                      <option value="">Selecione...</option>
+                      {nodes.map(node => (
+                        <option key={node.id} value={node.id}>{node.id}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm mb-1">Destino</label>
+                    <select 
+                      className="w-full p-2 bg-slate-700 rounded"
+                      value={selectedTo}
+                      onChange={(e) => setSelectedTo(e.target.value)}
+                    >
+                      <option value="">Selecione...</option>
+                      {nodes.map(node => (
+                        <option key={node.id} value={node.id}>{node.id}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={calculateRoute}
+                    disabled={!selectedFrom || !selectedTo}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 rounded flex items-center justify-center gap-2"
+                  >
+                    <Play size={18} />
+                    Calcular Caminho Mínimo
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'graph' && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Estatísticas</h3>
+                
+                <div className="space-y-3">
+                  <div className="bg-slate-700 p-3 rounded">
+                    <p className="text-sm text-slate-400">Interseções</p>
+                    <p className="text-2xl font-bold">{nodes.length}</p>
+                  </div>
+                  
+                  <div className="bg-slate-700 p-3 rounded">
+                    <p className="text-sm text-slate-400">Vias</p>
+                    <p className="text-2xl font-bold">{edges.length}</p>
+                  </div>
+                  
+                  <div className="bg-slate-700 p-3 rounded">
+                    <p className="text-sm text-slate-400">Eventos Ativos</p>
+                    <p className="text-2xl font-bold text-red-400">{events.length}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700 rounded text-sm">
+                  <p className="font-semibold mb-2">💡 Complexidades:</p>
+                  <ul className="space-y-1 text-slate-300">
+                    <li>• Inserir evento: O(log n)</li>
+                    <li>• Remover evento: O(log n)</li>
+                    <li>• Dijkstra: O((V+E) log V)</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TrafficSystemDemo;
