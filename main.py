@@ -3,46 +3,72 @@
 """
 Sistema de Trânsito Inteligente
 Estruturas: Grafo Ponderado + Árvore AVL
+Versão Melhorada com Feedback Visual
 """
 
 import os
 import time
 from datetime import datetime
 
+# Códigos ANSI para cores (funcionam no Linux/Mac/Windows 10+)
+class Cores:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 def limpar_tela():
     """Limpa a tela do terminal"""
     os.system('cls' if os.name == 'nt' else 'clear')
 
-
 def pausar():
     """Pausa a execução até pressionar Enter"""
-    input("\nPressione ENTER para continuar...")
-
+    input(f"\n{Cores.OKCYAN}Pressione ENTER para continuar...{Cores.ENDC}")
 
 def exibir_cabecalho():
     """Exibe o cabeçalho do sistema"""
+    print(f"{Cores.HEADER}{Cores.BOLD}")
     print("=" * 60)
     print(" " * 15 + "SISTEMA DE TRÂNSITO INTELIGENTE")
     print("=" * 60)
+    print(f"{Cores.ENDC}")
 
+def sucesso(msg):
+    """Exibe mensagem de sucesso"""
+    print(f"{Cores.OKGREEN}✓ {msg}{Cores.ENDC}")
+
+def erro(msg):
+    """Exibe mensagem de erro"""
+    print(f"{Cores.FAIL}✗ {msg}{Cores.ENDC}")
+
+def aviso(msg):
+    """Exibe mensagem de aviso"""
+    print(f"{Cores.WARNING}⚠ {msg}{Cores.ENDC}")
+
+def info(msg):
+    """Exibe mensagem informativa"""
+    print(f"{Cores.OKCYAN}→ {msg}{Cores.ENDC}")
 
 def menu_principal():
     """Menu principal do sistema"""
-    print("\n┌─────────────────────────────────────────────────┐")
+    print(f"\n{Cores.OKBLUE}┌─────────────────────────────────────────────────┐")
     print("│  1. Gerenciar Malha Viária                     │")
     print("│  2. Gerenciar Eventos de Trânsito              │")
     print("│  3. Cálculo de Rotas                            │")
     print("│  4. Análise e Estatísticas                     │")
     print("│  5. Persistência de Dados                      │")
     print("│  0. Sair                                        │")
-    print("└─────────────────────────────────────────────────┘")
+    print(f"└─────────────────────────────────────────────────┘{Cores.ENDC}")
     return input("\nEscolha uma opção: ").strip()
-
 
 def menu_malha_viaria():
     """Submenu para gerenciar a malha viária"""
-    print("\n┌─────────────────────────────────────────────────┐")
+    print(f"\n{Cores.OKBLUE}┌─────────────────────────────────────────────────┐")
     print("│  GERENCIAR MALHA VIÁRIA                         │")
     print("├─────────────────────────────────────────────────┤")
     print("│  1. Adicionar interseção                        │")
@@ -50,13 +76,12 @@ def menu_malha_viaria():
     print("│  3. Remover via                                 │")
     print("│  4. Visualizar mapa                             │")
     print("│  0. Voltar                                      │")
-    print("└─────────────────────────────────────────────────┘")
+    print(f"└─────────────────────────────────────────────────┘{Cores.ENDC}")
     return input("\nEscolha uma opção: ").strip()
-
 
 def menu_eventos():
     """Submenu para gerenciar eventos"""
-    print("\n┌─────────────────────────────────────────────────┐")
+    print(f"\n{Cores.OKBLUE}┌─────────────────────────────────────────────────┐")
     print("│  GERENCIAR EVENTOS DE TRÂNSITO                  │")
     print("├─────────────────────────────────────────────────┤")
     print("│  1. Registrar novo evento                       │")
@@ -64,22 +89,20 @@ def menu_eventos():
     print("│  3. Listar eventos ativos                       │")
     print("│  4. Buscar evento por ID                        │")
     print("│  0. Voltar                                      │")
-    print("└─────────────────────────────────────────────────┘")
+    print(f"└─────────────────────────────────────────────────┘{Cores.ENDC}")
     return input("\nEscolha uma opção: ").strip()
-
 
 def menu_rotas():
     """Submenu para cálculo de rotas"""
-    print("\n┌─────────────────────────────────────────────────┐")
+    print(f"\n{Cores.OKBLUE}┌─────────────────────────────────────────────────┐")
     print("│  CÁLCULO DE ROTAS                               │")
     print("├─────────────────────────────────────────────────┤")
     print("│  1. Calcular rota ótima                         │")
     print("│  2. Comparar rotas (com/sem eventos)            │")
     print("│  3. Identificar eventos na rota                 │")
     print("│  0. Voltar                                      │")
-    print("└─────────────────────────────────────────────────┘")
+    print(f"└─────────────────────────────────────────────────┘{Cores.ENDC}")
     return input("\nEscolha uma opção: ").strip()
-
 
 def executar_sistema(sistema):
     """Executa o loop principal do sistema"""
@@ -100,13 +123,12 @@ def executar_sistema(sistema):
         elif opcao == '5':
             gerenciar_persistencia(sistema)
         elif opcao == '0':
-            print("\n✓ Encerrando o sistema...")
+            sucesso("Encerrando o sistema...")
             time.sleep(1)
             break
         else:
-            print("\n✗ Opção inválida!")
+            erro("Opção inválida!")
             pausar()
-
 
 def gerenciar_malha_viaria(sistema):
     """Gerencia operações da malha viária"""
@@ -116,45 +138,41 @@ def gerenciar_malha_viaria(sistema):
         opcao = menu_malha_viaria()
         
         if opcao == '1':
-            # Adicionar interseção
-            print("\n→ ADICIONAR INTERSEÇÃO")
+            info("ADICIONAR INTERSEÇÃO")
             nome = input("Nome da interseção: ").strip().upper()
             if nome:
                 sistema.grafo.adicionar_vertice(nome)
-                print(f"✓ Interseção '{nome}' adicionada com sucesso!")
+                sucesso(f"Interseção '{nome}' adicionada com sucesso!")
             else:
-                print("✗ Nome inválido!")
+                erro("Nome inválido!")
             pausar()
             
         elif opcao == '2':
-            # Adicionar via
-            print("\n→ ADICIONAR VIA (BIDIRECIONAL)")
+            info("ADICIONAR VIA (BIDIRECIONAL)")
             origem = input("Interseção de origem: ").strip().upper()
             destino = input("Interseção de destino: ").strip().upper()
             try:
                 peso = float(input("Distância (km): ").strip())
                 if peso > 0:
                     sistema.grafo.adicionar_aresta(origem, destino, peso)
-                    print(f"✓ Via {origem} <-> {destino} adicionada!")
+                    sucesso(f"Via {origem} <-> {destino} adicionada!")
                 else:
-                    print("✗ Distância deve ser positiva!")
+                    erro("Distância deve ser positiva!")
             except ValueError:
-                print("✗ Distância inválida!")
+                erro("Distância inválida!")
             pausar()
             
         elif opcao == '3':
-            # Remover via
-            print("\n→ REMOVER VIA")
+            info("REMOVER VIA")
             origem = input("Interseção de origem: ").strip().upper()
             destino = input("Interseção de destino: ").strip().upper()
             if sistema.grafo.remover_aresta(origem, destino):
-                print(f"✓ Via {origem} <-> {destino} removida!")
+                sucesso(f"Via {origem} <-> {destino} removida!")
             else:
-                print("✗ Via não encontrada!")
+                erro("Via não encontrada!")
             pausar()
             
         elif opcao == '4':
-            # Visualizar mapa
             print("\n")
             print(sistema.grafo.visualizar_grafo())
             pausar()
@@ -162,9 +180,8 @@ def gerenciar_malha_viaria(sistema):
         elif opcao == '0':
             break
         else:
-            print("\n✗ Opção inválida!")
+            erro("Opção inválida!")
             pausar()
-
 
 def gerenciar_eventos(sistema):
     """Gerencia eventos de trânsito"""
@@ -174,13 +191,12 @@ def gerenciar_eventos(sistema):
         opcao = menu_eventos()
         
         if opcao == '1':
-            # Registrar evento
-            print("\n→ REGISTRAR NOVO EVENTO")
-            print("Tipos: acidente, obra, congestionamento")
+            info("REGISTRAR NOVO EVENTO")
+            print(f"{Cores.WARNING}Tipos: acidente, obra, congestionamento{Cores.ENDC}")
             tipo = input("Tipo de evento: ").strip().lower()
             
             if tipo not in ['acidente', 'obra', 'congestionamento']:
-                print("✗ Tipo inválido!")
+                erro("Tipo inválido!")
                 pausar()
                 continue
             
@@ -190,80 +206,77 @@ def gerenciar_eventos(sistema):
             try:
                 impacto = float(input("Impacto no tempo (km adicional): ").strip())
                 if impacto > 0:
-                    sucesso, msg = sistema.registrar_evento(tipo, origem, destino, impacto)
-                    if sucesso:
-                        print(f"✓ {msg}")
+                    resultado, msg = sistema.registrar_evento(tipo, origem, destino, impacto)
+                    if resultado:
+                        sucesso(msg)
                     else:
-                        print(f"✗ {msg}")
+                        erro(msg)
                 else:
-                    print("✗ Impacto deve ser positivo!")
+                    erro("Impacto deve ser positivo!")
             except ValueError:
-                print("✗ Impacto inválido!")
+                erro("Impacto inválido!")
             pausar()
             
         elif opcao == '2':
-            # Remover evento
-            print("\n→ REMOVER EVENTO")
+            info("REMOVER EVENTO")
             try:
                 id_evento = int(input("ID do evento: ").strip())
-                sucesso, msg = sistema.remover_evento(id_evento)
-                if sucesso:
-                    print(f"✓ {msg}")
+                resultado, msg = sistema.remover_evento(id_evento)
+                if resultado:
+                    sucesso(msg)
                 else:
-                    print(f"✗ {msg}")
+                    erro(msg)
             except ValueError:
-                print("✗ ID inválido!")
+                erro("ID inválido!")
             pausar()
             
         elif opcao == '3':
-            # Listar eventos
-            print("\n→ EVENTOS ATIVOS")
+            info("EVENTOS ATIVOS")
             eventos = sistema.avl.listar_todos()
             
             if not eventos:
-                print("Nenhum evento ativo no momento.")
+                aviso("Nenhum evento ativo no momento.")
             else:
-                print(f"\nTotal: {len(eventos)} evento(s)\n")
+                print(f"\n{Cores.BOLD}Total: {len(eventos)} evento(s){Cores.ENDC}\n")
                 print("-" * 80)
                 print(f"{'ID':<5} {'Tipo':<18} {'Localização':<15} {'Impacto':<10} {'Data/Hora'}")
                 print("-" * 80)
                 
                 for evento in eventos:
                     data_hora = datetime.fromtimestamp(evento.timestamp).strftime('%d/%m/%Y %H:%M')
-                    print(f"{evento.id:<5} {evento.tipo:<18} {evento.localizacao:<15} "
+                    cor_tipo = Cores.FAIL if evento.tipo == 'acidente' else Cores.WARNING
+                    print(f"{evento.id:<5} {cor_tipo}{evento.tipo:<18}{Cores.ENDC} {evento.localizacao:<15} "
                           f"+{evento.impacto:<9.1f} {data_hora}")
                 
                 print("-" * 80)
             pausar()
             
         elif opcao == '4':
-            # Buscar evento
-            print("\n→ BUSCAR EVENTO POR ID")
+            info("BUSCAR EVENTO POR ID")
             try:
                 id_evento = int(input("ID do evento: ").strip())
                 evento = sistema.avl.buscar(id_evento)
                 
                 if evento:
-                    print("\n" + "=" * 50)
+                    print(f"\n{Cores.OKGREEN}{'=' * 50}")
                     print(f"ID: {evento.id}")
                     print(f"Tipo: {evento.tipo}")
                     print(f"Localização: {evento.localizacao}")
                     print(f"Impacto: +{evento.impacto} km")
                     data_hora = datetime.fromtimestamp(evento.timestamp).strftime('%d/%m/%Y às %H:%M')
                     print(f"Registrado em: {data_hora}")
-                    print("=" * 50)
+                    print(f"{'=' * 50}{Cores.ENDC}")
                 else:
-                    print("✗ Evento não encontrado!")
+                    erro("Evento não encontrado!")
             except ValueError:
-                print("✗ ID inválido!")
+                erro("ID inválido!")
             pausar()
             
         elif opcao == '0':
             break
         else:
-            print("\n✗ Opção inválida!")
+            erro("Opção inválida!")
             pausar()
-
 
 def calcular_rotas(sistema):
     """Calcula e compara rotas"""
@@ -273,39 +286,36 @@ def calcular_rotas(sistema):
         opcao = menu_rotas()
         
         if opcao == '1':
-            # Calcular rota ótima
-            print("\n→ CALCULAR ROTA ÓTIMA")
+            info("CALCULAR ROTA ÓTIMA")
             origem = input("Origem: ").strip().upper()
             destino = input("Destino: ").strip().upper()
             
-            print("\nCalculando...")
+            print(f"\n{Cores.OKCYAN}Calculando...{Cores.ENDC}")
             caminho, distancia, status = sistema.calcular_rota_otima(origem, destino)
             
             if status == "OK":
-                print("\n" + "=" * 50)
+                print(f"\n{Cores.OKGREEN}{'=' * 50}")
                 print("ROTA ÓTIMA ENCONTRADA")
                 print("=" * 50)
                 print(f"Caminho: {' → '.join(caminho)}")
                 print(f"Distância total: {distancia:.2f} km")
-                print("=" * 50)
+                print(f"{'=' * 50}{Cores.ENDC}")
                 
-                # Verificar eventos na rota
                 eventos = sistema.eventos_na_rota(caminho)
                 if eventos:
-                    print(f"\n⚠ Atenção: {len(eventos)} evento(s) afetando esta rota:")
+                    aviso(f"Atenção: {len(eventos)} evento(s) afetando esta rota:")
                     for ev in eventos:
                         print(f"  • {ev.tipo} em {ev.localizacao} (+{ev.impacto} km)")
             else:
-                print(f"\n✗ {status}")
+                erro(status)
             pausar()
             
         elif opcao == '2':
-            # Comparar rotas
-            print("\n→ COMPARAR ROTAS (COM/SEM EVENTOS)")
+            info("COMPARAR ROTAS (COM/SEM EVENTOS)")
             origem = input("Origem: ").strip().upper()
             destino = input("Destino: ").strip().upper()
             
-            print("\nAnalisando...")
+            print(f"\n{Cores.OKCYAN}Analisando...{Cores.ENDC}")
             resultado = sistema.comparar_rotas(origem, destino)
             
             caminho_ideal, dist_ideal = resultado['rota_ideal']
@@ -317,26 +327,25 @@ def calcular_rotas(sistema):
             print("=" * 60)
             
             if caminho_ideal:
-                print("\n🟢 Rota ideal (sem eventos):")
+                print(f"\n{Cores.OKGREEN}🟢 Rota ideal (sem eventos):")
                 print(f"   Caminho: {' → '.join(caminho_ideal)}")
-                print(f"   Distância: {dist_ideal:.2f} km")
+                print(f"   Distância: {dist_ideal:.2f} km{Cores.ENDC}")
             
             if caminho_atual:
-                print("\n🔴 Rota atual (com eventos):")
+                print(f"\n{Cores.FAIL}🔴 Rota atual (com eventos):")
                 print(f"   Caminho: {' → '.join(caminho_atual)}")
-                print(f"   Distância: {dist_atual:.2f} km")
+                print(f"   Distância: {dist_atual:.2f} km{Cores.ENDC}")
             
             if impacto > 0:
-                print(f"\n⚠ Impacto dos eventos: +{impacto:.2f} km ({(impacto/dist_ideal*100):.1f}%)")
+                aviso(f"Impacto dos eventos: +{impacto:.2f} km ({(impacto/dist_ideal*100):.1f}%)")
             elif impacto == 0:
-                print("\n✓ Nenhum impacto - rotas idênticas")
+                sucesso("Nenhum impacto - rotas idênticas")
             
             print("=" * 60)
             pausar()
             
         elif opcao == '3':
-            # Identificar eventos na rota
-            print("\n→ IDENTIFICAR EVENTOS NA ROTA")
+            info("IDENTIFICAR EVENTOS NA ROTA")
             origem = input("Origem: ").strip().upper()
             destino = input("Destino: ").strip().upper()
             
@@ -348,41 +357,40 @@ def calcular_rotas(sistema):
                 print(f"Distância: {distancia:.2f} km\n")
                 
                 if eventos:
-                    print(f"⚠ {len(eventos)} evento(s) afetando esta rota:\n")
+                    aviso(f"{len(eventos)} evento(s) afetando esta rota:\n")
                     for ev in eventos:
                         print(f"  ID {ev.id}: {ev.tipo} em {ev.localizacao}")
                         print(f"           Impacto: +{ev.impacto} km")
                         data = datetime.fromtimestamp(ev.timestamp).strftime('%d/%m/%Y %H:%M')
                         print(f"           Registrado: {data}\n")
                 else:
-                    print("✓ Nenhum evento afetando esta rota")
+                    sucesso("Nenhum evento afetando esta rota")
             else:
-                print(f"\n✗ {status}")
+                erro(status)
             pausar()
             
         elif opcao == '0':
             break
         else:
-            print("\n✗ Opção inválida!")
+            erro("Opção inválida!")
             pausar()
-
 
 def exibir_estatisticas(sistema):
     """Exibe estatísticas do sistema"""
     limpar_tela()
     exibir_cabecalho()
     
-    print("\n→ ANÁLISE E ESTATÍSTICAS")
+    info("ANÁLISE E ESTATÍSTICAS")
     
     stats = sistema.estatisticas()
     
-    print("\n" + "=" * 50)
+    print(f"\n{Cores.BOLD}{'=' * 50}")
     print("RESUMO DO SISTEMA")
     print("=" * 50)
     print(f"Interseções cadastradas: {stats['total_intersecoes']}")
     print(f"Vias cadastradas: {stats['total_vias']}")
     print(f"Eventos ativos: {stats['eventos_ativos']}")
-    print("=" * 50)
+    print(f"{'=' * 50}{Cores.ENDC}")
     
     if stats['eventos_ativos'] > 0:
         print("\nDistribuição por tipo de evento:")
@@ -396,47 +404,43 @@ def exibir_estatisticas(sistema):
     
     pausar()
 
-
 def gerenciar_persistencia(sistema):
     """Gerencia salvamento e carregamento de dados"""
     limpar_tela()
     exibir_cabecalho()
     
-    print("\n┌─────────────────────────────────────────────────┐")
+    print(f"\n{Cores.OKBLUE}┌─────────────────────────────────────────────────┐")
     print("│  PERSISTÊNCIA DE DADOS                          │")
     print("├─────────────────────────────────────────────────┤")
     print("│  1. Salvar dados                                │")
     print("│  2. Carregar dados                              │")
     print("│  0. Voltar                                      │")
-    print("└─────────────────────────────────────────────────┘")
+    print(f"└─────────────────────────────────────────────────┘{Cores.ENDC}")
     
     opcao = input("\nEscolha uma opção: ").strip()
     
     if opcao == '1':
-        sucesso, msg = sistema.salvar_dados()
-        if sucesso:
-            print(f"\n✓ {msg}")
+        resultado, msg = sistema.salvar_dados()
+        if resultado:
+            sucesso(msg)
         else:
-            print(f"\n✗ {msg}")
+            erro(msg)
         pausar()
         
     elif opcao == '2':
-        sucesso, msg = sistema.carregar_dados()
-        if sucesso:
-            print(f"\n✓ {msg}")
+        resultado, msg = sistema.carregar_dados()
+        if resultado:
+            sucesso(msg)
         else:
-            print(f"\n✗ {msg}")
+            erro(msg)
         pausar()
-
 
 def criar_dados_exemplo(sistema):
     """Cria dados de exemplo para demonstração"""
-    # Adicionar interseções
     intersecoes = ['A', 'B', 'C', 'D', 'E', 'F']
     for i in intersecoes:
         sistema.grafo.adicionar_vertice(i)
     
-    # Adicionar vias
     vias = [
         ('A', 'B', 5.0),
         ('A', 'C', 3.0),
@@ -452,24 +456,16 @@ def criar_dados_exemplo(sistema):
     for origem, destino, peso in vias:
         sistema.grafo.adicionar_aresta(origem, destino, peso)
     
-    # Adicionar alguns eventos
     sistema.registrar_evento('acidente', 'A', 'B', 3.0)
     sistema.registrar_evento('obra', 'C', 'D', 5.0)
     
-    print("✓ Dados de exemplo carregados!")
+    sucesso("Dados de exemplo carregados!")
     print("  • 6 interseções (A, B, C, D, E, F)")
     print("  • 9 vias bidirecionais")
     print("  • 2 eventos de trânsito")
 
-
 def main():
     """Função principal"""
-    # Importar as classes (assumindo que estão em arquivos separados)
-    # from avl_tree import ArvoreAVL
-    # from grafo_ponderado import GrafoPonderado
-    # from sistema_transito import SistemaTransito
-    
-    # Para este exemplo, as classes estão no mesmo arquivo
     from avl_tree import ArvoreAVL
     from grafo_ponderado import GrafoPonderado
     from sistema_transito import SistemaTransito
@@ -477,14 +473,12 @@ def main():
     limpar_tela()
     exibir_cabecalho()
     
-    print("\nInicializando sistema...")
+    print(f"\n{Cores.OKCYAN}Inicializando sistema...{Cores.ENDC}")
     
-    # Criar instâncias
     grafo = GrafoPonderado()
     avl = ArvoreAVL()
     sistema = SistemaTransito(grafo, avl)
     
-    # Perguntar se quer carregar dados ou usar exemplo
     print("\n1. Carregar dados salvos")
     print("2. Usar dados de exemplo")
     print("3. Começar vazio")
@@ -492,22 +486,19 @@ def main():
     opcao = input("\nEscolha uma opção: ").strip()
     
     if opcao == '1':
-        sucesso, msg = sistema.carregar_dados()
+        resultado, msg = sistema.carregar_dados()
         print(f"\n{msg}")
         time.sleep(2)
     elif opcao == '2':
         criar_dados_exemplo(sistema)
         time.sleep(2)
     
-    # Executar sistema
     executar_sistema(sistema)
     
     limpar_tela()
-    print("\n" + "=" * 60)
+    print(f"\n{Cores.HEADER}{'=' * 60}")
     print(" " * 15 + "Obrigado por usar o sistema!")
-    print("=" * 60)
-    print()
-
+    print(f"{'=' * 60}{Cores.ENDC}\n")
 
 if __name__ == "__main__":
     main()
